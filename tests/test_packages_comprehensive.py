@@ -1,17 +1,19 @@
+# mypy: disable-error-code=reportUnknownVariableType,reportUnknownParameterType,reportMissingTypeArgument,reportUnknownMemberType,reportUnknownArgumentType,reportAttributeAccessIssue
 """Comprehensive tests for GovInfo MCP server packages tools."""
 
 import json
+from typing import Any
 
 from fastmcp import Client
 from loguru import logger
 import pytest
 
 # Import the actual server instance after setup has run
-from app.server import mcp
+from app.server import mcp  # type: ignore[reportUnknownVariableType]
 
 
 @pytest.fixture
-def client() -> Client:
+def client() -> Client[Any]:
     """Create a test client connected to the real server.
 
     Returns:
@@ -22,7 +24,7 @@ def client() -> Client:
 
 
 @pytest.mark.asyncio
-async def test_get_packages_by_collection(client: Client) -> None:
+async def test_get_packages_by_collection(client: Client[Any]) -> None:
     """Test getting packages from a specific collection."""
     async with client:
         result = await client.call_tool(
@@ -31,8 +33,8 @@ async def test_get_packages_by_collection(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
-        data = json.loads(response)
+        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have packages data
         assert "packages" in data
@@ -42,7 +44,7 @@ async def test_get_packages_by_collection(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_package_summary(client: Client) -> None:
+async def test_get_package_summary(client: Client[Any]) -> None:
     """Test getting package summary."""
     async with client:
         # First get a package ID from a collection
@@ -51,7 +53,7 @@ async def test_get_package_summary(client: Client) -> None:
             {"collection": "FR", "page_size": 1},
         )
 
-        packages_data = json.loads(result[0].text)
+        packages_data = json.loads(str(result[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
         if packages_data["packages"]:
             package_id = packages_data["packages"][0]["packageId"]
 
@@ -61,8 +63,8 @@ async def test_get_package_summary(client: Client) -> None:
             )
 
             assert len(result) == 1
-            response = result[0].text
-            data = json.loads(response)
+            response = result[0].text  # type: ignore[attr-defined,union-attr]
+            data = json.loads(str(response))  # type: ignore[arg-type]
 
             # Should have package summary data
             assert "packageId" in data or "title" in data
@@ -71,7 +73,7 @@ async def test_get_package_summary(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_package_content(client: Client) -> None:
+async def test_get_package_content(client: Client[Any]) -> None:
     """Test getting package content."""
     async with client:
         # First get a package ID from a collection
@@ -80,7 +82,7 @@ async def test_get_package_content(client: Client) -> None:
             {"collection": "FR", "page_size": 1},
         )
 
-        packages_data = json.loads(result[0].text)
+        packages_data = json.loads(str(result[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
         if packages_data["packages"]:
             package_id = packages_data["packages"][0]["packageId"]
 
@@ -92,7 +94,7 @@ async def test_get_package_content(client: Client) -> None:
                 )
 
                 assert len(result) == 1
-                response = result[0].text
+                response = result[0].text  # type: ignore[attr-defined,union-attr]
 
                 # Should return HTML content or error message
                 assert isinstance(response, str)
@@ -106,7 +108,7 @@ async def test_get_package_content(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_published_packages_by_date(client: Client) -> None:
+async def test_published_packages_by_date(client: Client[Any]) -> None:
     """Test getting packages published on a specific date."""
     async with client:
         # Use a date that's more likely to have data and be stable
@@ -117,8 +119,8 @@ async def test_published_packages_by_date(client: Client) -> None:
             )
 
             assert len(result) == 1
-            response = result[0].text
-            data = json.loads(response)
+            response = result[0].text  # type: ignore[attr-defined,union-attr]
+            data = json.loads(str(response))  # type: ignore[arg-type]
 
             # Should have packages data
             assert "packages" in data
@@ -134,7 +136,7 @@ async def test_published_packages_by_date(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_published_packages_by_range(client: Client) -> None:
+async def test_published_packages_by_range(client: Client[Any]) -> None:
     """Test getting packages published within a date range."""
     async with client:
         result = await client.call_tool(
@@ -148,8 +150,8 @@ async def test_published_packages_by_range(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
-        data = json.loads(response)
+        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have packages data
         assert "packages" in data
@@ -159,7 +161,7 @@ async def test_published_packages_by_range(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_related_packages(client: Client) -> None:
+async def test_related_packages(client: Client[Any]) -> None:
     """Test getting related packages."""
     async with client:
         # First get a package ID from a collection
@@ -171,7 +173,7 @@ async def test_related_packages(client: Client) -> None:
             },  # Public Laws might have related items
         )
 
-        packages_data = json.loads(result[0].text)
+        packages_data = json.loads(str(result[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
         if packages_data["packages"]:
             package_id = packages_data["packages"][0]["packageId"]
 
@@ -181,8 +183,8 @@ async def test_related_packages(client: Client) -> None:
             )
 
             assert len(result) == 1
-            response = result[0].text
-            data = json.loads(response)
+            response = result[0].text  # type: ignore[attr-defined,union-attr]
+            data = json.loads(str(response))  # type: ignore[arg-type]
 
             # Related packages data structure varies
             assert isinstance(data, dict)
@@ -191,7 +193,7 @@ async def test_related_packages(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_advanced_search(client: Client) -> None:
+async def test_advanced_search(client: Client[Any]) -> None:
     """Test advanced search functionality."""
     async with client:
         result = await client.call_tool(
@@ -205,8 +207,8 @@ async def test_advanced_search(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
-        data = json.loads(response)
+        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data
         assert "results" in data

@@ -1,6 +1,7 @@
 """Test file for the GovInfo MCP server statutes tools."""
 
 import json
+from typing import Any
 
 from fastmcp import Client
 from loguru import logger
@@ -11,7 +12,7 @@ from app.server import mcp
 
 
 @pytest.fixture
-def client() -> Client:
+def client() -> Client[Any]:
     """Create a test client connected to the real server.
 
     Returns:
@@ -22,13 +23,13 @@ def client() -> Client:
 
 
 @pytest.mark.asyncio
-async def test_statute_collections(client: Client) -> None:
+async def test_statute_collections(client: Client[Any]) -> None:
     """Test listing statute collections."""
     async with client:
         result = await client.call_tool("statutes_list_statute_collections", {})
 
         assert len(result) == 1
-        response = result[0].text
+        response = result[0].text  # type: ignore[attr-defined]
         data = json.loads(response)
 
         # Should have statute collections data
@@ -45,7 +46,7 @@ async def test_statute_collections(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_search_statutes(client: Client) -> None:
+async def test_search_statutes(client: Client[Any]) -> None:
     """Test searching within US statute collections."""
     async with client:
         result = await client.call_tool(
@@ -54,7 +55,7 @@ async def test_search_statutes(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
+        response = result[0].text  # type: ignore[attr-defined]
         data = json.loads(response)
 
         # Should have results data
@@ -65,7 +66,7 @@ async def test_search_statutes(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_uscode_title(client: Client) -> None:
+async def test_get_uscode_title(client: Client[Any]) -> None:
     """Test getting USC title information."""
     async with client:
         result = await client.call_tool(
@@ -74,7 +75,7 @@ async def test_get_uscode_title(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
+        response = result[0].text  # type: ignore[attr-defined]
         data = json.loads(response)
 
         # Should have results data
@@ -85,7 +86,7 @@ async def test_get_uscode_title(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_public_laws_by_congress(client: Client) -> None:
+async def test_get_public_laws_by_congress(client: Client[Any]) -> None:
     """Test getting public laws by Congress."""
     async with client:
         result = await client.call_tool(
@@ -94,7 +95,7 @@ async def test_get_public_laws_by_congress(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
+        response = result[0].text  # type: ignore[attr-defined]
         data = json.loads(response)
 
         # Should have results data
@@ -105,7 +106,7 @@ async def test_get_public_laws_by_congress(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_statutes_at_large(client: Client) -> None:
+async def test_get_statutes_at_large(client: Client[Any]) -> None:
     """Test getting Statutes at Large by volume."""
     async with client:
         result = await client.call_tool(
@@ -114,7 +115,7 @@ async def test_get_statutes_at_large(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
+        response = result[0].text  # type: ignore[attr-defined]
         data = json.loads(response)
 
         # Should have results data

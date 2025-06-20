@@ -204,6 +204,7 @@ async def advanced_search(
 
     Raises:
         ValueError: If GOVINFO_API_KEY is not found in environment variables.
+
     """
     if ctx:
         await ctx.info(f"Performing advanced search with query: {query}")

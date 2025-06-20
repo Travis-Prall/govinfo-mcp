@@ -1,6 +1,7 @@
 """pytest configuration for GovInfo MCP tests."""
 
 import asyncio
+from collections.abc import Generator
 from pathlib import Path
 
 from loguru import logger
@@ -13,15 +14,25 @@ logger.add(test_log_path, rotation="10 MB", retention="1 week")
 
 
 @pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for the test session."""
+def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
+    """Create an instance of the default event loop for the test session.
+
+    Yields:
+        asyncio.AbstractEventLoop: The event loop for the test session.
+
+    """
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 
-def pytest_configure(config):
-    """Configure pytest with custom markers."""
+def pytest_configure(config: pytest.Config) -> None:
+    """Configure pytest with custom markers.
+
+    Args:
+        config (pytest.Config): The pytest configuration object.
+
+    """
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )

@@ -1,6 +1,8 @@
+# mypy: disable-error-code=reportUnknownVariableType,reportUnknownParameterType,reportMissingTypeArgument,reportUnknownMemberType,reportUnknownArgumentType,reportAttributeAccessIssue
 """Tests for the GovInfo MCP server."""
 
 import json
+from typing import Any
 
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
@@ -8,11 +10,11 @@ from loguru import logger
 import pytest
 
 # Import the actual server instance after setup has run
-from app.server import mcp
+from app.server import mcp  # type: ignore[reportUnknownVariableType]
 
 
 @pytest.fixture
-def client() -> Client:
+def client() -> Client[Any]:
     """Create a test client connected to the real server.
 
     Returns:
@@ -23,17 +25,17 @@ def client() -> Client:
 
 
 @pytest.mark.asyncio
-async def test_status_tool(client: Client) -> None:
+async def test_status_tool(client: Client[Any]) -> None:
     """Test the status tool returns expected server information."""
     async with client:
         result = await client.call_tool("status", {})
 
         # Check response structure
         assert len(result) == 1
-        response = result[0].text
+        response = result[0].text  # type: ignore[attr-defined,union-attr]
 
         # Parse JSON response
-        data = json.loads(response)
+        data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Verify expected fields
         assert data["status"] in {
@@ -49,7 +51,7 @@ async def test_status_tool(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_list_available_tools(client: Client) -> None:
+async def test_list_available_tools(client: Client[Any]) -> None:
     """Test listing all available tools."""
     async with client:
         tools = await client.list_tools()
@@ -85,14 +87,14 @@ async def test_list_available_tools(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_collections_tool(client: Client) -> None:
+async def test_collections_tool(client: Client[Any]) -> None:
     """Test the collections tool."""
     async with client:
         result = await client.call_tool("collections_get_collections", {})
 
         assert len(result) == 1
-        response = result[0].text
-        data = json.loads(response)
+        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have collections data
         assert "collections" in data
@@ -104,7 +106,7 @@ async def test_collections_tool(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_search_packages_tool(client: Client) -> None:
+async def test_search_packages_tool(client: Client[Any]) -> None:
     """Test the search packages tool."""
     async with client:
         result = await client.call_tool(
@@ -112,8 +114,8 @@ async def test_search_packages_tool(client: Client) -> None:
         )
 
         assert len(result) == 1
-        response = result[0].text
-        data = json.loads(response)
+        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data (not "packages")
         assert "results" in data
@@ -123,14 +125,14 @@ async def test_search_packages_tool(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_statutes_list_collections(client: Client) -> None:
+async def test_statutes_list_collections(client: Client[Any]) -> None:
     """Test the statutes list collections tool."""
     async with client:
         result = await client.call_tool("statutes_list_statute_collections", {})
 
         assert len(result) == 1
-        response = result[0].text
-        data = json.loads(response)
+        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have statute collections data
         assert "statute_collections" in data
@@ -140,7 +142,7 @@ async def test_statutes_list_collections(client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_error_handling_invalid_tool(client: Client) -> None:
+async def test_error_handling_invalid_tool(client: Client[Any]) -> None:
     """Test error handling for invalid tool names."""
     async with client:
         with pytest.raises(ToolError, match="Unknown tool"):
