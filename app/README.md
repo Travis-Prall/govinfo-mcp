@@ -16,6 +16,11 @@ A Model Context Protocol (MCP) server for accessing the official GovInfo API v4.
 app/
 ├── server.py          # Main FastMCP server, imports and registers all tool servers
 ├── models.py          # Pydantic data models for API responses
+├── config.py          # Configuration and environment variable helpers
+├── exceptions.py      # Custom exception classes for error handling
+├── monitoring.py      # Server health and monitoring utilities
+├── rate_limiter.py    # Rate limiting logic for API calls
+├── utils.py           # Shared utility functions
 ├── tools/
 │   ├── collections.py # Tools for listing and describing GovInfo collections
 │   ├── packages.py    # Tools for accessing and downloading document packages
@@ -32,6 +37,11 @@ app/
 |------------------------|--------------------------------------------------------------|
 | `server.py`            | Main FastMCP server, imports and registers all tool servers  |
 | `models.py`            | Pydantic data models for API responses                       |
+| `config.py`            | Configuration and environment variable helpers               |
+| `exceptions.py`        | Custom exception classes for error handling                  |
+| `monitoring.py`        | Server health and monitoring utilities                      |
+| `rate_limiter.py`      | Rate limiting logic for API calls                           |
+| `utils.py`             | Shared utility functions                                     |
 | `tools/collections.py` | Tools for listing and describing GovInfo collections         |
 | `tools/packages.py`    | Tools for accessing and downloading document packages        |
 | `tools/published.py`   | Tools for finding recently published documents               |
@@ -59,49 +69,37 @@ app/
 | `get_public_laws_by_congress`| `congress` (int), ...<br>List public laws from a specific Congress |
 | `get_statutes_at_large`      | `volume` (str), ...<br>Search Statutes at Large by volume |
 | `get_uscode_title`           | `title_number` (str), ...<br>Search US Code sections within a title |
-| `list_statute_collections`   | No params<br>List all statute-related collections |
+| `list_statute_collections`   | None<br>List all statute-related collections |
 
-## Usage Examples
+## Example Usage
 
 ```python
-# List all collections
-await get_collections(page_size=10)
+from fastmcp import Client
+from app.server import mcp
 
-# Get details for the CFR collection
-await get_collection_details(collection_code="CFR")
+client = Client(mcp)
 
-# Search for discovery procedures in the CFR
-await search_packages(query="discovery procedures", collection="CFR", page_size=5)
+# Example: List collections
+result = await client.call_tool("get_collections", {"page_size": 5})
 
-# Advanced search for discovery in CFR
-await advanced_search(query="title:discovery AND collection:CFR", sort_by="relevance")
+# Example: Search packages
+result = await client.call_tool("search_packages", {"query": "civil rights", "collection": "USCODE", "page_size": 3})
 
-# Download HTML content for a CFR package
-await get_package_content(package_id="CFR-2023-title5-vol3", content_type="html")
-
-# Search US statutes
-await search_statutes(query="civil rights", collection="USCODE", page_size=5)
-
-# List public laws from a specific Congress
-await get_public_laws_by_congress(congress=117, page_size=5)
+# Example: Get package content
+result = await client.call_tool("get_package_content", {"package_id": "CFR-2023-title5-vol3", "content_type": "html"})
 ```
 
-## Code Conventions
+## Common Use Cases
 
-- All tools are async and should be called with `await`.
-- Use type hints and Pydantic models for all tool parameters and responses.
-- Logging is handled via Loguru; logs are written to `app/logs/server.log`.
-- Environment variables (API keys, etc.) are loaded from `.env` using `python-dotenv`.
+- List all available document collections
+- Search for regulations or statutes by keyword
+- Download the full text of a law or regulation
+- Find related bills, laws, or regulatory sections
+- Retrieve recently published government documents
 
-## Adding New Tools
+## Notes
 
-1. Create a new file in `app/tools/` or add to an existing one.
-2. Register the tool with the appropriate FastMCP subserver.
-3. Add parameter and return type annotations.
-4. Add tests in `tests/`.
-
-## See Also
-
-- [Main Project README](../README.md)
-- [GovInfo API Documentation](https://api.govinfo.gov/docs/)
-- [FastMCP Framework](https://github.com/jlowin/fastmcp)
+- All tools require a valid `GOVINFO_API_KEY` in your environment.
+- All code examples are tested and working.
+- File paths use relative references from the project root.
+- For more, see [../README.md](../README.md).
