@@ -1,0 +1,174 @@
+{
+  "project_name": "GovInfo MCP Server",
+  "description": "A Model Context Protocol server providing LLM-friendly access to U.S. government documents (bills, laws, regulations, and more) through the official GovInfo API v4. Enables searching and retrieving legal documents for precise citation and research.",
+  "version": "0.1.0",
+  "authors": [
+    "Travis-Prall <smart@travisprall.com>"
+  ],
+  "readme": "README.md",
+  "other_documentation": [
+    "app/README.md",
+    "tests/README.md"
+  ],
+  "packages": [
+    {
+      "include": "app"
+    }
+  ],
+  "dependencies": {
+    "python": ">=3.12.0",
+    "fastmcp": ">=2.8.0",
+    "httpx": ">=0.28.1",
+    "loguru": ">=0.7.3",
+    "python-dotenv": ">=1.0.0",
+    "anyio": ">=3.0.0",
+    "pydantic": ">=2.0.0",
+    "psutil": ">=7.0.0"
+  },
+  "dev_dependencies": {
+    "pytest": ">=8.3.0",
+    "pytest-asyncio": ">=0.24.0",
+    "pytest-cov": ">=6.0.0",
+    "ruff": ">=0.8.0",
+    "mypy": ">=1.12.0",
+    "ipython": ">=8.28.0",
+    "rich": ">=13.9.0",
+    "httpx-sse": ">=0.4.0"
+  },
+  "source_directories": [
+    "app"
+  ],
+  "test_directories": [
+    "tests"
+  ],
+  "entry_points": {
+    "console_scripts": []
+  },
+  "main_module": "app.server",
+  "mcp_tools": [
+    {
+      "name": "get_collections",
+      "description": "List all available GovInfo collections",
+      "category": "collections"
+    },
+    {
+      "name": "get_collection_details",
+      "description": "Get details for a specific collection",
+      "category": "collections"
+    },
+    {
+      "name": "search_packages",
+      "description": "Search packages by query and filters",
+      "category": "search"
+    },
+    {
+      "name": "advanced_search",
+      "description": "Advanced search with Lucene syntax and filters",
+      "category": "search"
+    },
+    {
+      "name": "get_packages_by_collection",
+      "description": "List packages from a collection",
+      "category": "packages"
+    },
+    {
+      "name": "get_package_summary",
+      "description": "Get metadata for a specific package",
+      "category": "packages"
+    },
+    {
+      "name": "get_package_content",
+      "description": "Download package content in various formats",
+      "category": "packages"
+    },
+    {
+      "name": "get_published_packages",
+      "description": "Get packages published on a specific date",
+      "category": "published"
+    },
+    {
+      "name": "get_published_range",
+      "description": "Get packages published within a date range",
+      "category": "published"
+    },
+    {
+      "name": "get_related_packages",
+      "description": "Find packages related to a specific package",
+      "category": "related"
+    },
+    {
+      "name": "get_granule_related",
+      "description": "Find items related to a specific granule",
+      "category": "related"
+    },
+    {
+      "name": "search_statutes",
+      "description": "Search US statutes across statute collections",
+      "category": "statutes"
+    },
+    {
+      "name": "get_public_laws_by_congress",
+      "description": "List public laws from a specific Congress",
+      "category": "statutes"
+    },
+    {
+      "name": "get_statutes_at_large",
+      "description": "Search Statutes at Large by volume",
+      "category": "statutes"
+    },
+    {
+      "name": "get_uscode_title",
+      "description": "Search US Code sections within a title",
+      "category": "statutes"
+    },
+    {
+      "name": "list_statute_collections",
+      "description": "List all statute-related collections",
+      "category": "statutes"
+    }
+  ],
+  "api_endpoints": {
+    "base_url": "https://api.govinfo.gov/v4/"
+  },
+  "project_status": "production_ready",
+  "test_coverage": {
+    "target": "90%",
+    "mcp_tools": "100%",
+    "models": "95%",
+    "total_tools": 16,
+    "tools_with_unit_tests": 16,
+    "tools_with_integration_tests": 8,
+    "tools_with_manual_verification": 8
+  },
+  "coding_guidelines": [
+    ".github/instructions/GovInfo.instructions.md"
+  ],
+  "environment": {
+    "python_version": ">=3.12.0",
+    "os": "Ubuntu Noble (24.04 LTS)",
+    "package_manager": "uv",
+    "framework": "FastMCP",
+    "async_support": true,
+    "logging_framework": "Loguru"
+  },
+  "deployment": {
+    "docker_support": true,
+    "docker_files": [
+      "Dockerfile",
+      "Dockerfile.dev",
+      "Dockerfile.prod"
+    ],
+    "docker_compose": true,
+    "environment_files": [
+      ".env"
+    ],
+    "log_directories": [
+      "app/logs",
+      "tests/logs"
+    ],
+    "ports": {
+      "production": 8765,
+      "development": 8766
+    }
+  }
+}

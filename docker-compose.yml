@@ -1,0 +1,25 @@
+
+
+services:
+  # Production service
+  govinfo-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: govinfo-mcp:latest
+    container_name: govinfo-mcp-server
+    # Keep container running without starting the MCP server
+    command: tail -f /dev/null
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=INFO
+      - API_BASE_URL=https://www.govinfo.gov/api/rest/v4
+    restart: unless-stopped
+    networks:
+      - mcp-network
+    # No ports needed for stdio
+
+networks:
+  mcp-network:
+    driver: bridge

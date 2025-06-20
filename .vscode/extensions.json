@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    // Python essentials
+    "ms-python.python",
+    "charliermarsh.ruff",
+    // GitHub Copilot (essential for container development)
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+    // Development tools
+    "ms-vscode.makefile-tools",
+    "tamasfe.even-better-toml",
+    // Container & Docker support
+    "ms-vscode-remote.remote-containers",
+    // Git
+    "eamodio.gitlens",
+    // Markdown
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+    // General productivity
+    "ms-vscode.vscode-json"
+  ]
+}
