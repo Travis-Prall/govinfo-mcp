@@ -227,6 +227,7 @@ local/
 
 .github
 .ruff_cache
+ruff.toml
 
 # Devcontainer and documentation
 .devcontainer/
