@@ -232,3 +232,4 @@ ruff.toml
 # Devcontainer and documentation
 .devcontainer/
 docs/
+.vscode/
