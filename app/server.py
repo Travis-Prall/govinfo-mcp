@@ -1,19 +1,46 @@
 #!/usr/bin/env python3
-"""GovInfo MCP Server - FastMCP Implementation."""
+"""GovInfo MCP Server - FastMCP implementation.
 
-import asyncio
+The server exposes the GovInfo tools over two transports:
+
+* **STDIO** (default) - for local MCP clients such as Claude Desktop, Cursor,
+  or the VS Code MCP integration.
+* **Streamable HTTP** - as a standalone Linux service. Import ``app`` for an
+  ASGI deployment (``uvicorn app.server:app``) or set ``MCP_TRANSPORT=http``
+  to let ``main()`` start the HTTP server directly.
+
+Deployment environment variables
+---------------------------------
+``MCP_TRANSPORT``
+    ``stdio`` (default) or ``http``.
+``MCP_HOST`` / ``MCP_PORT``
+    Bind address for the HTTP transport (defaults ``0.0.0.0`` / ``8775``).
+``MCP_ALLOWED_HOSTS`` / ``MCP_ALLOWED_ORIGINS``
+    Comma-separated allow-lists enabling Host/Origin request protection.
+``MCP_CORS_ALLOW_ORIGINS``
+    Comma-separated browser origins; enables CORS for browser-based clients.
+``FASTMCP_STATELESS_HTTP``
+    ``true`` for horizontally scaled deployments (no session affinity).
+"""
+
+from __future__ import annotations
+
 from datetime import UTC, datetime
 import os
 from pathlib import Path
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 import httpx
 from loguru import logger
 import psutil
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 
+from app import __version__
 from app.tools import (
     collections_server,
     packages,
@@ -22,6 +49,10 @@ from app.tools import (
     search_server,
     statutes,
 )
+
+if TYPE_CHECKING:
+    from starlette.applications import Starlette
+    from starlette.requests import Request
 
 load_dotenv()
 # Configure logging
@@ -67,7 +98,7 @@ async def status() -> dict[str, Any]:
     return {
         "status": "healthy" if api_health["is_healthy"] else "degraded",
         "service": "GovInfo MCP Server",
-        "version": "0.1.0",
+        "version": __version__,
         "timestamp": datetime.now(UTC).isoformat(),
         "system": {
             "uptime": str(datetime.now(UTC) - process_start).split(".")[0],
@@ -114,40 +145,120 @@ async def check_api_health() -> dict[str, Any]:
         }
 
 
-async def setup() -> None:
-    """Set up the server by importing all tool servers."""
-    logger.info("Setting up GovInfo MCP server")
+def _register_tools() -> None:
+    """Mount the focused tool servers under stable namespaces.
 
-    # Import all tool servers with descriptive prefixes
-    await mcp.import_server("collections", collections_server)
-    logger.info("Imported collections server tools")
-
-    await mcp.import_server("packages", packages)
-    logger.info("Imported packages server tools")
-
-    await mcp.import_server("published", published_server)
-    logger.info("Imported published server tools")
-
-    await mcp.import_server("related", related_server)
-    logger.info("Imported related server tools")
-
-    await mcp.import_server("search", search_server)
-    logger.info("Imported search server tools")
-
-    await mcp.import_server("statutes", statutes)
-    logger.info("Imported statutes server tools")
-
-    logger.info("Server setup complete - all tool servers imported")
+    FastMCP 4 replaced ``import_server`` with ``mount``. Mounting keeps a live
+    link to each child server (unlike the v2 static snapshot) and prefixes the
+    exposed tool names with the given namespace, e.g. ``collections_<tool>``.
+    """
+    mcp.mount(collections_server, namespace="collections")
+    mcp.mount(packages, namespace="packages")
+    mcp.mount(published_server, namespace="published")
+    mcp.mount(related_server, namespace="related")
+    mcp.mount(search_server, namespace="search")
+    mcp.mount(statutes, namespace="statutes")
+    logger.info("Mounted collections, packages, published, related, search, statutes")
 
 
-# Run setup when module is imported
-asyncio.run(setup())
+def _csv_env(name: str) -> list[str]:
+    """Return a comma-separated environment variable as a clean list.
+
+    Returns:
+        The non-empty, whitespace-stripped values from the variable.
+
+    """
+    return [value.strip() for value in os.getenv(name, "").split(",") if value.strip()]
+
+
+def _env_flag(name: str) -> bool:
+    """Return ``True`` when an environment variable is set to a truthy value.
+
+    Returns:
+        Whether the variable holds one of ``1``, ``true``, ``yes``, or ``on``.
+
+    """
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+@mcp.custom_route("/health", methods=["GET"])
+def health_check(_request: Request) -> JSONResponse:
+    """Liveness/readiness probe for load balancers and container health checks.
+
+    Returns:
+        A JSON response describing service health and version.
+
+    """
+    return JSONResponse({
+        "status": "healthy",
+        "service": "GovInfo MCP Server",
+        "version": __version__,
+    })
+
+
+def build_http_app() -> Starlette:
+    """Build the Streamable HTTP ASGI application.
+
+    Returns:
+        A Starlette ASGI application exposing the MCP endpoint at ``/mcp`` and
+        the operational ``/health`` route.
+
+    """
+    allowed_hosts = _csv_env("MCP_ALLOWED_HOSTS")
+    allowed_origins = _csv_env("MCP_ALLOWED_ORIGINS")
+    cors_origins = _csv_env("MCP_CORS_ALLOW_ORIGINS")
+
+    kwargs: dict[str, Any] = {
+        "stateless_http": _env_flag("MCP_STATELESS_HTTP")
+        or _env_flag("FASTMCP_STATELESS_HTTP"),
+    }
+
+    if cors_origins:
+        kwargs["middleware"] = [
+            Middleware(
+                CORSMiddleware,
+                allow_origins=cors_origins,
+                allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+                allow_headers=[
+                    "mcp-protocol-version",
+                    "mcp-session-id",
+                    "Authorization",
+                    "Content-Type",
+                ],
+                expose_headers=["mcp-session-id"],
+            )
+        ]
+
+    if allowed_hosts or allowed_origins:
+        kwargs["host_origin_protection"] = True
+        kwargs["allowed_hosts"] = allowed_hosts or None
+        kwargs["allowed_origins"] = allowed_origins or None
+
+    return mcp.http_app(**kwargs)
+
+
+# Register tools at import time so ``from app.server import mcp`` is ready to use
+# for both the STDIO transport and the ASGI ``app`` below.
+_register_tools()
+
+# ASGI application for ``uvicorn app.server:app`` deployments.
+app = build_http_app()
 
 
 def main() -> None:
-    """Run the GovInfo MCP server asynchronously."""
-    logger.info("Starting GovInfo MCP server")
-    mcp.run()
+    """Run the GovInfo MCP server using the transport selected by the environment."""
+    transport = os.getenv("MCP_TRANSPORT", "stdio").strip().lower()
+
+    if transport in {"http", "streamable-http", "streamable_http"}:
+        host = os.getenv("MCP_HOST", "0.0.0.0")
+        port = int(os.getenv("MCP_PORT", "8775"))
+        logger.info(
+            f"Starting GovInfo MCP server over Streamable HTTP on {host}:{port}"
+        )
+        mcp.run(transport="http", host=host, port=port)
+    else:
+        logger.info("Starting GovInfo MCP server over STDIO")
+        mcp.run()
 
 
 if __name__ == "__main__":

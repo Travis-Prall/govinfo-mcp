@@ -9,7 +9,8 @@ from fastmcp.exceptions import ToolError
 from loguru import logger
 import pytest
 
-# Import the actual server instance after setup has run
+# Import the actual server instance (tools are mounted at import time)
+from app import __version__
 from app.server import mcp  # type: ignore[reportUnknownVariableType]
 
 
@@ -31,8 +32,8 @@ async def test_status_tool(client: Client[Any]) -> None:
         result = await client.call_tool("status", {})
 
         # Check response structure
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
 
         # Parse JSON response
         data = json.loads(str(response))  # type: ignore[arg-type]
@@ -45,7 +46,7 @@ async def test_status_tool(client: Client[Any]) -> None:
         assert (
             data["service"] == "GovInfo MCP Server"
         )  # Updated to match actual service
-        assert data["version"] == "0.1.0"
+        assert data["version"] == __version__
 
         logger.info(f"Status tool test passed: {data}")
 
@@ -92,8 +93,8 @@ async def test_collections_tool(client: Client[Any]) -> None:
     async with client:
         result = await client.call_tool("collections_get_collections", {})
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have collections data
@@ -113,8 +114,8 @@ async def test_search_packages_tool(client: Client[Any]) -> None:
             "search_search_packages", {"query": "federal register", "page_size": 5}
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data (not "packages")
@@ -130,8 +131,8 @@ async def test_statutes_list_collections(client: Client[Any]) -> None:
     async with client:
         result = await client.call_tool("statutes_list_statute_collections", {})
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have statute collections data

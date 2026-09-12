@@ -1,5 +1,5 @@
 # Ruff configuration
-target-version = "py312"
+target-version = "py314"
 line-length = 88
 
 # Enable preview features for additional rules

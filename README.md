@@ -1,5 +1,10 @@
 # GovInfo MCP Server
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/travisprall)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/downloads/)
+[![FastMCP](https://img.shields.io/badge/FastMCP-4.x-6f42c1.svg)](https://gofastmcp.com)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange.svg)](LICENSE.md)
+
 A Model Context Protocol (MCP) server that provides LLM-friendly access to the official GovInfo API v4. This server enables searching and retrieving U.S. government documents, including bills, laws, regulations, and other official publications, for precise legal research and citation verification.
 
 ## 🎯 Purpose
@@ -41,7 +46,7 @@ See [app/README.md](app/README.md) for full tool parameter documentation.
 
 ### Prerequisites
 
-- Python 3.12+
+- Python 3.14+
 - [uv](https://github.com/astral-sh/uv) for dependency management (Poetry is NOT used)
 - Internet connection for GovInfo API access
 - GovInfo API key (set `GOVINFO_API_KEY` in your environment)
@@ -56,12 +61,10 @@ See [app/README.md](app/README.md) for full tool parameter documentation.
    cd GovInfo
    ```
 
-2. Install dependencies using uv:
+2. Install dependencies (creates a project-local `.venv` from the committed `uv.lock`):
 
    ```bash
-   uv pip install -r requirements.txt
-   # or, if using pyproject.toml:
-   uv pip install -r <(uv pip compile pyproject.toml)
+   uv sync
    ```
 
 3. Set your GovInfo API key:
@@ -74,13 +77,43 @@ See [app/README.md](app/README.md) for full tool parameter documentation.
 
 ### Running the Server
 
-Start the MCP server:
+By default the server speaks STDIO, which is what most local MCP clients expect:
 
 ```bash
 uv run python -m app.server
 ```
 
 Or use the VS Code task "Run MCP Server".
+
+#### Streamable HTTP (standalone Linux service)
+
+To run the server as a networked ASGI service, either start the exported app
+with Uvicorn:
+
+```bash
+uv run uvicorn app.server:app --host 0.0.0.0 --port 8775
+```
+
+or let the entry point select the transport:
+
+```bash
+MCP_TRANSPORT=http MCP_HOST=0.0.0.0 MCP_PORT=8775 uv run python -m app.server
+```
+
+The MCP endpoint is then `http://<host>:8775/mcp` and the operational health
+probe is `http://<host>:8775/health`. For horizontally scaled deployments set
+`FASTMCP_STATELESS_HTTP=true` (or `MCP_STATELESS_HTTP=true`); to enable
+Host/Origin request protection set `MCP_ALLOWED_HOSTS`/`MCP_ALLOWED_ORIGINS`,
+and to allow specific browser origins set `MCP_CORS_ALLOW_ORIGINS`.
+
+#### Docker
+
+```bash
+docker compose up --build
+```
+
+The container serves Streamable HTTP on port `8775` and exposes `/health` for
+its `HEALTHCHECK`.
 
 ### Running Tests
 
@@ -97,7 +130,8 @@ See [app/README.md](app/README.md) for detailed tool documentation and usage exa
 ## 🔗 Links
 
 - [GovInfo API Documentation](https://api.govinfo.gov/docs/)
-- [FastMCP Framework](https://github.com/jlowin/fastmcp)
+- [FastMCP Documentation](https://gofastmcp.com)
+- [FastMCP Repository](https://github.com/PrefectHQ/fastmcp)
 - [Project Source](.)
 - [Source Documentation](app/README.md)
 - [Test Suite](tests/README.md)
@@ -108,3 +142,23 @@ See [app/README.md](app/README.md) for detailed tool documentation and usage exa
 - File paths use relative references from the project root.
 - All commands use `uv run` where needed.
 - For Ubuntu/Linux. For Windows, adapt commands as needed.
+
+## 💖 Support
+
+This project is maintained by [travisprall](https://github.com/travisprall). It is free to use, and support is always optional — but if it saves you time, a coffee is very much appreciated:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/travisprall)
+
+- ☕ [Buy me a coffee](https://www.buymeacoffee.com/travisprall)
+- 💜 [Sponsor on GitHub](https://github.com/sponsors/travisprall)
+
+## 📄 License
+
+Copyright © travisprall.
+
+Released under the [PolyForm Noncommercial License 1.0.0](LICENSE.md) (SPDX: `PolyForm-Noncommercial-1.0.0`). Noncommercial use is permitted; commercial use requires a separate license.
+
+## 📚 Citation
+
+If you use this software in research, please cite it using the metadata in [CITATION.cff](CITATION.cff).
+

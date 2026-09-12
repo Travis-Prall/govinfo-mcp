@@ -20,6 +20,7 @@ build/
 .gitattributes
 README.md
 *.md
+!LICENSE.md
 LICENSE
 CHANGELOG*
 .editorconfig

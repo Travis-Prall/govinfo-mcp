@@ -1,25 +1,51 @@
-
-
 services:
-  # Production service
+  # Production service (Streamable HTTP / ASGI)
   govinfo-mcp:
     build:
       context: .
       dockerfile: Dockerfile
     image: govinfo-mcp:latest
     container_name: govinfo-mcp-server
-    # Keep container running without starting the MCP server
-    command: tail -f /dev/null
     env_file:
       - .env
     environment:
-      - LOG_LEVEL=INFO
-      - API_BASE_URL=https://www.govinfo.gov/api/rest/v4
+      MCP_TRANSPORT: http
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "8775"
+      LOG_LEVEL: INFO
+      API_BASE_URL: https://www.govinfo.gov/api/rest/v4
+    ports:
+      - "8775:8775"
     restart: unless-stopped
+    init: true
+    # Hardened runtime: immutable root filesystem, no new privileges, no caps.
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /src/app/logs
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8775/health', timeout=3).status == 200 else 1)"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
     networks:
       - mcp-network
-    # No ports needed for stdio
 
 networks:
   mcp-network:
     driver: bridge
+

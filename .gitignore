@@ -162,7 +162,6 @@ archives/
 
 # uv
 uv.lock.temp
-uv.lock
 dist/
 
 # Jupyter Notebook
@@ -170,8 +169,7 @@ dist/
 *.ipynb
 
 # pyenv
-.python-version
-
+# .python-version is committed so uv and CI pin the same interpreter.
 # pipenv
 Pipfile.lock
 
@@ -225,11 +223,14 @@ secrets/
 local/
 .local/
 
-.github
+# GitHub automation (CI, funding, community health) is tracked; only the
+# local AI-assistant configuration below stays out of the repository.
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
 .ruff_cache
 ruff.toml
 
 # Devcontainer and documentation
-.devcontainer/
 docs/
 .vscode/

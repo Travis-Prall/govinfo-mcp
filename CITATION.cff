@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata below.
+title: GovInfo MCP Server
+type: software
+authors:
+  - name: Travis-Prall
+    alias: travisprall
+repository-code: https://github.com/Travis-Prall/GovInfo
+url: https://www.travisprall.com/
+license: PolyForm-Noncommercial-1.0.0
+version: 0.2.0
+date-released: 2026-09-12
+keywords:
+  - mcp
+  - govinfo
+  - legal
+  - government
+  - fastmcp

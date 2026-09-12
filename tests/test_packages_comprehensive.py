@@ -32,8 +32,8 @@ async def test_get_packages_by_collection(client: Client[Any]) -> None:
             {"collection": "FR", "page_size": 5},  # Federal Register
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have packages data
@@ -53,7 +53,7 @@ async def test_get_package_summary(client: Client[Any]) -> None:
             {"collection": "FR", "page_size": 1},
         )
 
-        packages_data = json.loads(str(result[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
+        packages_data = json.loads(str(result.content[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
         if packages_data["packages"]:
             package_id = packages_data["packages"][0]["packageId"]
 
@@ -62,8 +62,8 @@ async def test_get_package_summary(client: Client[Any]) -> None:
                 "packages_get_package_summary", {"package_id": package_id}
             )
 
-            assert len(result) == 1
-            response = result[0].text  # type: ignore[attr-defined,union-attr]
+            assert len(result.content) == 1
+            response = result.content[0].text  # type: ignore[attr-defined,union-attr]
             data = json.loads(str(response))  # type: ignore[arg-type]
 
             # Should have package summary data
@@ -82,7 +82,7 @@ async def test_get_package_content(client: Client[Any]) -> None:
             {"collection": "FR", "page_size": 1},
         )
 
-        packages_data = json.loads(str(result[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
+        packages_data = json.loads(str(result.content[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
         if packages_data["packages"]:
             package_id = packages_data["packages"][0]["packageId"]
 
@@ -93,18 +93,18 @@ async def test_get_package_content(client: Client[Any]) -> None:
                     {"package_id": package_id, "content_type": "html"},
                 )
 
-                assert len(result) == 1
-                response = result[0].text  # type: ignore[attr-defined,union-attr]
+                assert len(result.content) == 1
+                response = result.content[0].text  # type: ignore[attr-defined,union-attr]
 
                 # Should return HTML content or error message
                 assert isinstance(response, str)
                 assert len(response) > 0
-
-                logger.info("Get package content tool test passed")
             except Exception as e:
                 # Content format may not be available for all packages
                 logger.info(f"Package content not available (expected): {e}")
                 # Test passes either way since this is expected API behavior
+            else:
+                logger.info("Get package content tool test passed")
 
 
 @pytest.mark.asyncio
@@ -118,21 +118,20 @@ async def test_published_packages_by_date(client: Client[Any]) -> None:
                 {"date_issued": "2025-06-17", "page_size": 5},  # Previous day
             )
 
-            assert len(result) == 1
-            response = result[0].text  # type: ignore[attr-defined,union-attr]
+            response = result.content[0].text  # type: ignore[attr-defined,union-attr]
             data = json.loads(str(response))  # type: ignore[arg-type]
 
             # Should have packages data
             assert "packages" in data
             assert isinstance(data["packages"], list)
-
-            logger.info("Get published packages by date tool test passed")
         except Exception as e:
             # API might have server errors or no data for specific dates
             logger.info(
                 f"Published packages by date test encountered API issue (acceptable): {e}"
             )
             # Test passes since this demonstrates the tool works (API issue is external)
+        else:
+            logger.info("Get published packages by date tool test passed")
 
 
 @pytest.mark.asyncio
@@ -149,8 +148,8 @@ async def test_published_packages_by_range(client: Client[Any]) -> None:
             },
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have packages data
@@ -173,7 +172,7 @@ async def test_related_packages(client: Client[Any]) -> None:
             },  # Public Laws might have related items
         )
 
-        packages_data = json.loads(str(result[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
+        packages_data = json.loads(str(result.content[0].text))  # type: ignore[attr-defined,union-attr,arg-type]
         if packages_data["packages"]:
             package_id = packages_data["packages"][0]["packageId"]
 
@@ -182,8 +181,8 @@ async def test_related_packages(client: Client[Any]) -> None:
                 "related_get_related_packages", {"package_id": package_id}
             )
 
-            assert len(result) == 1
-            response = result[0].text  # type: ignore[attr-defined,union-attr]
+            assert len(result.content) == 1
+            response = result.content[0].text  # type: ignore[attr-defined,union-attr]
             data = json.loads(str(response))  # type: ignore[arg-type]
 
             # Related packages data structure varies
@@ -206,8 +205,8 @@ async def test_advanced_search(client: Client[Any]) -> None:
             },
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data

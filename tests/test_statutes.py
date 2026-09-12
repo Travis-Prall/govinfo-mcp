@@ -39,8 +39,8 @@ async def test_statute_collections(client: Client[Any]) -> None:
     async with client:  # type: ignore
         result = await client.call_tool("statutes_list_statute_collections", {})
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have statute collections data
@@ -68,8 +68,8 @@ async def test_search_statutes(client: Client[Any]) -> None:
             {"query": "civil rights", "page_size": 5},
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data
@@ -91,8 +91,8 @@ async def test_get_uscode_title(client: Client[Any]) -> None:
             {"title_number": "42", "page_size": 5},  # Title 42 - Public Health
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data
@@ -114,8 +114,8 @@ async def test_get_public_laws_by_congress(client: Client[Any]) -> None:
             {"congress": 117, "page_size": 5},  # 117th Congress
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data
@@ -136,8 +136,8 @@ async def test_get_statutes_at_large(client: Client[Any]) -> None:
             {"volume": "125", "page_size": 5},  # Recent volume
         )
 
-        assert len(result) == 1
-        response = result[0].text  # type: ignore[attr-defined,union-attr]
+        assert len(result.content) == 1
+        response = result.content[0].text  # type: ignore[attr-defined,union-attr]
         data = json.loads(str(response))  # type: ignore[arg-type]
 
         # Should have results data
